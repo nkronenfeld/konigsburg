@@ -16,7 +16,7 @@ This means: If we have an "expected path":
 * Would like to demonstrate dynamically
 
 
-** Goals
+## Goals
 * Put together a dynamic graph visualization that lets one take a large, complex graph, and allow one to:
   * Put the graph in optimal order
   * Dynamically change graph order
