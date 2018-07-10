@@ -1,5 +1,23 @@
 function tokenizeLine (line, separator) {
-	return line.split(separator)
+	var tokens = [];
+	var curToken = "";
+	for (var i = 0; i < line.length; i++) {
+		if (line[i] == '"') {
+			i = i + 1;
+			while (i < line.length && line[i] != '"') {
+				curToken = curToken + line[i];
+				i = i + 1;
+			}
+		} else if (line[i] == separator) {
+			tokens.push(curToken);
+			curToken = "";
+		} else {
+			curToken = curToken + line[i];
+		}
+	}
+	tokens.push(curToken);
+
+	return tokens
 		.map(function (token) {
 			return token.trim();
 		}).filter(function (token) {
