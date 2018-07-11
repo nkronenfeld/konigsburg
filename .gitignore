@@ -1,5 +1,5 @@
 konigsburg
 *~
 node_modules
-dist
+web/dist
 .vscode
