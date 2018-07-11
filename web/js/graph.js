@@ -1,3 +1,7 @@
+function clone (obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+
 function tokenizeLine (line, separator) {
 	const tokens = [];
 	let curToken = "";
@@ -62,14 +66,18 @@ function processNode (line, state, graph) {
 	}
 }
 
+function newEdge (source, target, weight) {
+	return {
+		source: source,
+		target: target,
+		weight: Number(weight)
+	};		
+}
+
 function processEdge (line, state, graph) {
 	const tokens = tokenizeLine(line, " ")
 	if (tokens.length == 3) {
-		graph.edges.push({
-			"source": tokens[0],
-			"target": tokens[1],
-			"weight": tokens[2]
-		});
+		graph.edges.push(newEdge(tokens[0], tokens[1], tokens[2]));
 	}
 }
 
@@ -115,7 +123,7 @@ export function parsePAJ (pajText) {
 
 function calculateBestGraphOrder (graph) {
 	function getEdgeWeight (source, target) {
-		const matchingEdge = graph.edges.find(edge => edges.source == source && edges.target == target);
+		const matchingEdge = graph.edges.find(edge => edge.source == source && edge.target == target);
 		if (matchingEdge) {
 			return matchingEdge.weight;
 		} else {
@@ -123,10 +131,10 @@ function calculateBestGraphOrder (graph) {
 		}
 	}
 
-	const numNodes = graph.nodes.length();
+	const numNodes = graph.nodes.length;
 	const nodesLeft = [];
 	for (let i = 0; i < numNodes; ++i) {
-		nodesLeft.push(i);
+		nodesLeft.push(graph.nodes[i].id);
 	}
 	let result = [];
 	if (numNodes < 2) {
@@ -161,8 +169,8 @@ function calculateBestGraphOrder (graph) {
 			var total = 0;
 			for (var i = 0; i < sources.length; ++i) {
 				for (var j = 0; j < sinks.length; ++j) {
-					if (sources(i) != sinks(j)) {
-						total = total + getEdgeWeight(sources(i), sinks(j));
+					if (sources[i] != sinks[j]) {
+						total = total + getEdgeWeight(sources[i], sinks[j]);
 					}
 				}
 			}
@@ -180,8 +188,8 @@ function calculateBestGraphOrder (graph) {
 			return outDegree - inDegree;
 		}						 
 
-		addToStart(0);
-		addToEnd(numNodes - 1);
+		addToStart(nodesLeft[0]);
+		addToEnd(nodesLeft[nodesLeft.length - 1]);
 
 		while (nodesLeft.length > 0) {
 			// Look for clear sinks
@@ -213,6 +221,22 @@ function calculateBestGraphOrder (graph) {
 				}
 			}
 		}
+		result = startSeq.concat(endSeq);
 	}
-	return startSeq.concat(endSeq);
+	return result;
+}
+
+export function optimizeOrder (graph) {
+	const order = calculateBestGraphOrder(graph);
+	const nodeMap = {};
+	for (let i = 0; i < graph.nodes.length; ++i) {
+		nodeMap[graph.nodes[i].id] = graph.nodes[i];
+	}
+	const newNodes = order.map(n => nodeMap[n]);
+	const newEdges = graph.edges
+
+	return {
+		nodes: newNodes,
+		edges: newEdges
+	};
 }

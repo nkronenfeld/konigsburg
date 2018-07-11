@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import {emptyGraph, parsePAJ} from './graph';
-import {setupDatasetChooser} from './dataset';
+import * as controls from './controls';
 import {MatrixVis} from './matrix';
 
 
@@ -39,66 +39,63 @@ const matrix = new MatrixVis("matrix")
 matrix.setupTag();
 let currentGraph = emptyGraph();
 
-function updateGraph (graphData) {
-	const graph = (graphData ? parsePAJ(graphData) : emptyGraph());
-	const baseGraph = clone(graph);
+function updateGraph (graph) {
+	currentGraph = clone(graph);
 	
-	const link = svg.append("g")
-		  .attr("class", "links")
-		  .selectAll("line")
-		  .data(graph.edges)
-		  .enter()
-		  .append("line")
-		  .attr("stroke-width", d => Math.sqrt(Math.sqrt(d.weight)));
+//	const link = svg.append("g")
+//		  .attr("class", "links")
+//		  .selectAll("line")
+//		  .data(graph.edges)
+//		  .enter()
+//		  .append("line")
+//		  .attr("stroke-width", d => Math.sqrt(Math.sqrt(d.weight)));
+//	
+//	const node = svg.append("g")
+//		  .attr("class", "nodes")
+//		  .selectAll("circle")
+//		  .data(graph.nodes)
+//		  .enter()
+//		  .append("circle")
+//		  .attr("r", function (d) {return Math.sqrt(Math.sqrt(d["vector bio-masses"]));})
+//		  .attr("fill", function(d) {return color(d["partition ECO types"]); })
+//		  .call(d3.drag()
+//				.on("start", dragstarted)
+//				.on("drag", dragged)
+//				.on("end", dragended));
+//	
+//	node.append("title")
+//		.text(function(d) {return d.name;});
+//	
+//	simulation
+//		.nodes(graph.nodes)
+//		.on("tick", ticked);
+//	
+//	simulation.force("link")
+//		.links(graph.edges);
+//	
+//	function ticked() {
+//		link
+//			.attr("x1", function(d) {return d.source.x; })
+//			.attr("y1", function(d) {return d.source.y; })
+//			.attr("x2", function(d) {return d.target.x; })
+//			.attr("y2", function(d) {return d.target.y; });
+//		node
+//			.attr("cx", function(d) {return d.x; })
+//			.attr("cy", function(d) {return d.y; });
+//	}
 	
-	const node = svg.append("g")
-		  .attr("class", "nodes")
-		  .selectAll("circle")
-		  .data(graph.nodes)
-		  .enter()
-		  .append("circle")
-		  .attr("r", function (d) {return Math.sqrt(Math.sqrt(d["vector bio-masses"]));})
-		  .attr("fill", function(d) {return color(d["partition ECO types"]); })
-		  .call(d3.drag()
-				.on("start", dragstarted)
-				.on("drag", dragged)
-				.on("end", dragended));
-	
-	node.append("title")
-		.text(function(d) {return d.name;});
-	
-	simulation
-		.nodes(graph.nodes)
-		.on("tick", ticked);
-	
-	simulation.force("link")
-		.links(graph.edges);
-	
-	function ticked() {
-		link
-			.attr("x1", function(d) {return d.source.x; })
-			.attr("y1", function(d) {return d.source.y; })
-			.attr("x2", function(d) {return d.target.x; })
-			.attr("y2", function(d) {return d.target.y; });
-		node
-			.attr("cx", function(d) {return d.x; })
-			.attr("cy", function(d) {return d.y; });
-	}
-	
-	matrix.setGraph(baseGraph);
+	matrix.setGraph(currentGraph);
 	matrix.updateTag();
 }
 
-setupDatasetChooser("dataset", dataset => {
+controls.setupDatasetChooser("dataset", dataset => {
 	if ("" == dataset) {
-		updateGraph(null);
+		updateGraph(emptyGraph());
 	} else {
 		d3.text(`../data/${dataset}`, (error, graphData) => {
-			if (error) {
-				updateGraph(null);
-			} else {
-				updateGraph(graphData);
-			}
+			updateGraph(error ? emptyGraph() : parsePAJ(graphData));
 		});
 	}
 });
+
+controls.setupOrderOptimization("reorder", () => currentGraph, updateGraph);

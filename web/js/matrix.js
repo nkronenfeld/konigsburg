@@ -11,7 +11,9 @@ export function MatrixVis (id) {
 	this.setGraph = newGraph => {
 		const graphSize = newGraph.nodes.length;
 		const newMatrix = [];
+		const nodeOrder = {};
 		for (var i = 0; i < graphSize; ++i) {
+			nodeOrder[newGraph.nodes[i].id] = i;
 			newMatrix[i] = [];
 			for (let j = 0; j < graphSize; ++j) {
 				newMatrix[i][j] = 0;
@@ -19,7 +21,7 @@ export function MatrixVis (id) {
 		}
 		for (let i = 0; i < newGraph.edges.length; ++i) {
 			const edge = newGraph.edges[i];
-			newMatrix[edge.source][edge.target] = edge.weight;
+			newMatrix[nodeOrder[edge.source]][nodeOrder[edge.target]] = edge.weight;
 		}
 		this.graph = newMatrix;
 		this.labels = newGraph.nodes.map(node => node.name);
