@@ -25,73 +25,84 @@ export function MatrixVis (id) {
 		this.labels = newGraph.nodes.map(node => node.name);
 	};
 
+	this.setupTag = () => {
+		this.margins = {left: 100, right: 0, top: 100, bottom: 0};
+		this.width = 500;
+		this.height = 500;
+		const svg = d3.select("svg#"+this.id)
+			  .attr("width", this.width + this.margins.left + this.margins.right)
+			  .attr("height", this.height + this.margins.top + this.margins.bottom);
+		this.g = svg.append("g")
+		this.g.append("rect")
+			.attr("fill", "#f0f8fc")
+			.attr("width", this.width)
+			.attr("height", this.height)
+			.attr("transform", `translate(${this.margins.left},${this.margins.top})`);
+		this.rowHeaders = this.g.append("g")
+			.attr("transform", `translate(0, ${this.margins.top})`)
+			.attr("width", this.margins.left)
+			.attr("height", this.height);
+		this.colHeaders = this.g.append("g")
+			.attr("transform", `translate(${this.margins.left}, 0)`)
+			.attr("width", this.width)
+			.attr("height", this.margins.top);
+		this.cells = this.g.append("g")
+			.attr("transform", `translate(${this.margins.left}, ${this.margins.top})`)
+			.attr("width", this.width)
+			.attr("height", this.height);
+	};
+
 	// Update the visuals for this matrix visualization
 	this.updateTag = () => {
-		if (false) {
-			const columns = this.graph.length 
-			//    const width = (100.0 / columns) +"%"; 
-			const base = d3.select(`#${id}`); 
-			const table = base.append("table") 
-			const tr = table.selectAll("tr") 
-				  .data(this.graph) 
-			tr.exit().remove(); 
-			const rows = tr.enter().append("tr"); 
-			const td = rows.selectAll("td") 
-				  .data(function (d) {return d;}) 
-			td.exit().remove(); 
-			td.enter().append("td") 
-				.text(function (d) { return d; });
-		} else {
-			const thisMatrix = this;
-			const columns = this.graph.length;
-			const columnNames = [];
-			for (let i = 0; i < columns; ++i) columnNames[i] = i;
-			const width = 500;
-			const height = 500;
-			const gridWidth = width / columns;
+		const thisMatrix = this;
+		const columns = this.graph.length;
+		const columnNames = [];
+		for (let i = 0; i < columns; ++i)
+			columnNames[i] = this.labels ? this.labels[i] : i;
+		const gridWidth = this.width / columns;
 
-			const base = d3.select("#"+this.id);
-			const svg = base.append("svg")
-				  .attr("width", width + 100)
-				  .attr("height", height + 100);
-			const row = svg.selectAll(".row")
-				  .data(this.graph)
-				  .enter().append("g")
-				  .attr("transform", (d, i) => `translate(0, ${i * gridWidth})`)
-			const cell = row.selectAll(".cell")
-				  .data(d => d)
-				  .enter().append("rect")
-				  .attr("x", (d, i) => i * gridWidth)
-				  .attr("width", gridWidth)
-				  .attr("height", gridWidth)
-				  .style("fill-opacity", d => d)
-				  .style("fill", "#0080b0");
+		// Update row headers
+		const rowHeaders = this.rowHeaders.selectAll("text").data(columnNames);
+		rowHeaders.exit().remove();
+		rowHeaders.enter().append("text")
+			.attr("text-anchor", "end")
+			.attr("alignment-baseline", "middle")
+			.attr("font-size", "50%")
+		  .merge(rowHeaders)
+			.attr("transform", (d, i) => `translate(${thisMatrix.margins.left}, ${(i + 0.5) * gridWidth})`)
+			.text(d => d);
 
-			row.append("line")
-				.attr("x1", 0)
-				.attr("x2", width);
-			row.append("text")
-				.attr("x", (d, i) => i * gridWidth - height)
-				.attr("y", (d, i) => (i + 1.5) * gridWidth)
-				.attr("dy", ".32em")
-				.attr("text-anchor", "end")
-				.attr("font-size", "50%")
-				.attr("transform", "rotate(-90)")
-				.text((d, i) => thisMatrix.labels ? thisMatrix.labels[i] : i);
-			const column = svg.selectAll(".column")
-				  .data(this.graph)
-				  .enter().append("g");
-			column.append("line")
-				.attr("y1", 0)
-				.attr("y2", gridWidth);
+		// Update column headers
+		const colHeaders = this.colHeaders.selectAll("text").data(columnNames);
+		colHeaders.exit().remove();
+		colHeaders.enter().append("text")
+			.attr("text-anchor", "start")
+			.attr("alignment-baseline", "middle")
+			.attr("font-size", "50%")
+		  .merge(colHeaders)
+			.attr("transform", (d, i) => `translate(${(i + 0.5) * gridWidth}, ${thisMatrix.margins.top})rotate(-90)`)
+			.text(d => d);
 
-			column.append("text")
-				.attr("x", width + 20)
-				.attr("y", (d, i) => (i + 0.5) * gridWidth)
-				.attr("dy", ".32em")
-				.attr("text-anchor", "start")
-				.attr("font-size", "50%")
-				.text((d, i) => thisMatrix.labels ? thisMatrix.labels[i] : i);
-		}
+		// Update matrix
+		const cellContents = this.graph.map((row, r) => {
+			return row.map((elt, c) => { return {r: r, c: c, value: elt}; });
+		}).reduce((a, b) => a.concat(b));
+		const foo = cellContents.map(d => Number(d.value));
+		const maxValue = cellContents.map(d => d.value).reduce((a, b) => {
+			const result = Math.max(a, b);
+			if (isNaN(result)) {
+				console.log("Got NaN");
+			}
+			return result;
+		});
+		const cells = this.cells.selectAll("rect").data(cellContents);
+		cells.exit().remove();
+		cells.enter().append("rect")
+			.attr("width", gridWidth - 2)
+			.attr("height", gridWidth - 2)
+		  .merge(cells)
+			.attr("transform", d => `translate(${d.c * gridWidth + 1}, ${d.r * gridWidth + 1})`)
+			.style("fill-opacity", d => Math.sqrt(d.value / maxValue))
+			.style("fill", "#102040");
 	}
 };
