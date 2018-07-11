@@ -44,12 +44,18 @@ function extractLineBasedAggregation (graph) {
 	let currentLineGroup = null;
 	let currentLine = null;
 	graph.nodes.forEach(node => {
-		if (node.line == currentLine) {
-			currentLineGroup.push(node.id);
+		if (node.line && node.line != 0) {
+			if (node.line == currentLine) {
+				currentLineGroup.push(node.id);
+			} else {
+				if (currentLineGroup) aggregation.push(currentLineGroup);
+				currentLineGroup = [node.id];
+				currentLine = node.line;
+			}
 		} else {
-			if (currentLineGroup) aggregation.push(currentLineGroup);
-			currentLineGroup = [node.id];
-			currentLine = node.line;
+			aggregation.push(node.id)
+			currentLineGroup = null;
+			currentLine = null;
 		}
 	});
 	if (currentLineGroup) aggregation.push(currentLineGroup);
