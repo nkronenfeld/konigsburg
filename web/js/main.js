@@ -41,4 +41,6 @@ controls.setupDatasetChooser("dataset", "current dataset", dataset => {
 
 controls.setupOrderOptimization("reorder", () => currentGraph, updateGraph);
 
-controls.setupTextBasedAggregation("order", "aggregate", () => currentGraph, updateGraph);
+controls.setupTextBasedAggregation("order", "aggregate-text", () => currentGraph, updateGraph);
+
+controls.setupLineBasedAggregation("aggregate-line", () => currentGraph, updateGraph);

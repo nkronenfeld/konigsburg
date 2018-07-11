@@ -38,3 +38,31 @@ export function setGraphOrderField (orderFieldTag, currentGraph) {
 	const orderField = document.getElementById(orderFieldTag);
 	orderField.value = JSON.stringify(currentGraph.nodes.map(n => n.id));
 }
+
+function extractLineBasedAggregation (graph) {
+	const aggregation = [];
+	let currentLineGroup = null;
+	let currentLine = null;
+	graph.nodes.forEach(node => {
+		if (node.line == currentLine) {
+			currentLineGroup.push(node.id);
+		} else {
+			if (currentLineGroup) aggregation.push(currentLineGroup);
+			currentLineGroup = [node.id];
+			currentLine = node.line;
+		}
+	});
+	if (currentLineGroup) aggregation.push(currentLineGroup);
+	return aggregation;
+}
+
+export function setupLineBasedAggregation (tag, getCurrentGraph, withNewGraph) {
+	const button = document.getElementById(tag);
+
+	button.onclick = function (event) {
+		const graph = getCurrentGraph();
+		withNewGraph(
+			aggregateGraph(graph, extractLineBasedAggregation(graph))
+		);
+	}
+}
