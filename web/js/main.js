@@ -21,7 +21,7 @@ let currentGraph = emptyGraph();
 function updateGraph (graph) {
 	currentGraph = clone(graph);
 
-	initializeGraphView(graph);
+	initializeGraphView(currentGraph);
 	
 	matrix.setGraph(currentGraph);
 	matrix.updateTag();
