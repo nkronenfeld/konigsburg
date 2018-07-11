@@ -68,8 +68,8 @@ function processNode (line, state, graph) {
 
 function newEdge (source, target, weight) {
 	return {
-		source: source,
-		target: target,
+		source: Number(source),
+		target: Number(target),
 		weight: Number(weight)
 	};		
 }
@@ -79,6 +79,15 @@ function processEdge (line, state, graph) {
 	if (tokens.length == 3) {
 		graph.edges.push(newEdge(tokens[0], tokens[1], tokens[2]));
 	}
+}
+
+function pajNodeToGraphNode (pajNode) {
+	return {
+		id: Number(pajNode.id),
+		name: pajNode.name,
+		type: Number(pajNode["partition ECO types"]),
+		value: Number(pajNode["vector bio-masses"])
+	};	
 }
 
 export function emptyGraph () {
@@ -117,6 +126,7 @@ export function parsePAJ (pajText) {
 			}
 		}
 	});
+	graph.nodes = graph.nodes.map(pajNodeToGraphNode);
 	return graph;
 }
 
