@@ -73,6 +73,13 @@ function processEdge (line, state, graph) {
 	}
 }
 
+export function emptyGraph () {
+	return {
+		nodes: [],
+		edges: []
+	};
+}
+
 export function parsePAJ (pajText) {
 	const graph = {
 		"nodes": [],

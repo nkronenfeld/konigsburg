@@ -86,15 +86,14 @@ export function MatrixVis (id) {
 		// Update matrix
 		const cellContents = this.graph.map((row, r) => {
 			return row.map((elt, c) => { return {r: r, c: c, value: elt}; });
-		}).reduce((a, b) => a.concat(b));
-		const foo = cellContents.map(d => Number(d.value));
+		}).reduce((a, b) => a.concat(b), []);
 		const maxValue = cellContents.map(d => d.value).reduce((a, b) => {
 			const result = Math.max(a, b);
 			if (isNaN(result)) {
 				console.log("Got NaN");
 			}
 			return result;
-		});
+		}, Number.MIN_VALUE);
 		const cells = this.cells.selectAll("rect").data(cellContents);
 		cells.exit().remove();
 		cells.enter().append("rect")
