@@ -1,0 +1,21 @@
+{
+  "name": "konigsberg",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Uncharted Software <info@uncharted.software>",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
+  "dependencies": {
+    "bootstrap": "4.1.1",
+    "d3": "^5.4.0",
+    "font-awesome": "4.7.0",
+    "jquery": "3.3.1",
+    "lodash": "4.17.10"
+  },
+  "devDependencies": {
+    "webpack": "4.8.3",
+    "webpack-cli": "^3.0.8"
+  }
+}
