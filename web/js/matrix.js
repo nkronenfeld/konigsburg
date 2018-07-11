@@ -5,6 +5,7 @@ import * as d3 from "d3";
 export function MatrixVis (id) {
 	this.id = id;
 	this.graph = null;
+	this.labels = null;
 
 	// Set the graph visualized by this matrix
 	this.setGraph = newGraph => {
@@ -21,6 +22,7 @@ export function MatrixVis (id) {
 			newMatrix[edge.source][edge.target] = edge.weight;
 		}
 		this.graph = newMatrix;
+		this.labels = newGraph.nodes.map(node => node.name);
 	};
 
 	// Update the visuals for this matrix visualization
@@ -40,17 +42,18 @@ export function MatrixVis (id) {
 			td.enter().append("td") 
 				.text(function (d) { return d; });
 		} else {
+			const thisMatrix = this;
 			const columns = this.graph.length;
 			const columnNames = [];
 			for (let i = 0; i < columns; ++i) columnNames[i] = i;
-			const width = 1000;
-			const height = 1000;
+			const width = 500;
+			const height = 500;
 			const gridWidth = width / columns;
 
 			const base = d3.select("#"+this.id);
 			const svg = base.append("svg")
-				  .attr("width", width)
-				  .attr("height", height);
+				  .attr("width", width + 100)
+				  .attr("height", height + 100);
 			const row = svg.selectAll(".row")
 				  .data(this.graph)
 				  .enter().append("g")
@@ -65,25 +68,30 @@ export function MatrixVis (id) {
 				  .style("fill", "#0080b0");
 
 			row.append("line")
+				.attr("x1", 0)
 				.attr("x2", width);
 			row.append("text")
-				.attr("x", -6)
-				.attr("y", (d, i) => (i + 0.5) * gridWidth)
+				.attr("x", (d, i) => i * gridWidth - height)
+				.attr("y", (d, i) => (i + 1.5) * gridWidth)
 				.attr("dy", ".32em")
 				.attr("text-anchor", "end")
-				.text((d, i) => i);
+				.attr("font-size", "50%")
+				.attr("transform", "rotate(-90)")
+				.text((d, i) => thisMatrix.labels ? thisMatrix.labels[i] : i);
 			const column = svg.selectAll(".column")
 				  .data(this.graph)
-				  .enter().append("g")
-				  .attr("transform", (d, i) => `translate(${i * gridWidth}, 0)`);
+				  .enter().append("g");
 			column.append("line")
-				.attr("x1", -width)
+				.attr("y1", 0)
+				.attr("y2", gridWidth);
+
 			column.append("text")
-				.attr("x", 6)
+				.attr("x", width + 20)
 				.attr("y", (d, i) => (i + 0.5) * gridWidth)
 				.attr("dy", ".32em")
 				.attr("text-anchor", "start")
-				.text((d, i) => i);
+				.attr("font-size", "50%")
+				.text((d, i) => thisMatrix.labels ? thisMatrix.labels[i] : i);
 		}
 	}
 };
