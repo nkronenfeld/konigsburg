@@ -105,3 +105,113 @@ function parsePAJ (pajText) {
 	return graph;
 }
 
+
+function calculateBestGraphOrder (graph) {
+	function getEdgeWeight (source, target) {
+		val matchingEdge = graph.edges.find(function (edge) {
+			return edges.source == source && edges.target == target;
+		});
+		if (matchingEdge) {
+			return matchingEdge.weight;
+		} else {
+			return 0;
+		}
+	}
+
+	var numNodes = graph.nodes.length();
+	var nodesLeft = [];
+	for (var i = 0; i < numNodes; ++i) {
+		nodesLeft.push(i);
+	}
+	var result = [];
+	if (numNodes < 2) {
+		result = nodesLeft;
+	} else {
+		// This probably better reordering algorithm can be found at
+		// https://pdfs.semanticscholar.org/c7ed/d9acce96ca357876540e19664eb9d976637f.pdf
+		//
+		// Short form:
+		//  procedure GR (G: DiGraph; var s: VertexSequence);
+		//    s1 <- {}; s2 <- [];
+		//  while G != {} do
+		//    { while G contains a sink do
+		//      { choose a sink u; s2 <= u s2; G <= G - u};
+		//      while G contains a source do
+		//      { choose a source u; s1 <= s1 u; G <= G - u};
+		//      choose a vertex u for which delta(u) is a maximum;
+		//      s1 <= s1 u; G <= G - u};
+		//  s <= s1 s2
+		var startSeq = [];
+		var endSeq = [];
+
+		function addToStart (i) {
+			nodesLeft.splice(nodesLeft.indexOf(i), 1);
+			startSeq.push(i);
+		}
+		function addToEnd (i) {
+			nodesLeft.splice(nodesLeft.indexOf(i), 1);
+			endSeq.unshift(i);
+		}
+		function nonSelfDegree (sources, sinks) {
+			var total = 0;
+			for (var i = 0; i < sources.length; ++i) {
+				for (var j = 0; j < sinks.length; ++j) {
+					if (sources(i) != sinks(j)) {
+						total = total + getEdgeWeight(sources(i), sinks(j));
+					}
+				}
+			}
+			return total;
+		}
+		function sinkScore (node) {
+			return nonSelfDegree([node], nodesLeft);
+		}
+		function sourceScore (node) {
+			return nonSelfDegree(nodesLeft, [node]);
+		}
+		function degreeDeltaLeft (node) {
+			var inDegree = nonSelfDegree(nodesLeft, [node]);
+			var outDegree = nonSelfDegree([node], nodesLeft);
+			return outDegree - inDegree;
+		}						 
+
+		addToStart(0);
+		addToEnd(numNodes - 1);
+
+		while (nodesLeft.length > 0) {
+			// Look for clear sinks
+			var clearSinks = nodesLeft.filter(function (n) {
+				return sinkScore(n) == 0
+			});
+			if (clearSinks.length > 0) {
+				clearSinks.forEach(addToEnd);
+			} else {
+				// Look for clear sources
+				var clearSources = nodesLeft.filter(function(n) {
+					return sourceScore(n) == 0;
+				});
+				if (clearSources.length > 0) {
+					clearSources.forEach(addToStart);
+				} else {
+					// No clear sinks or soures; pick our best candidate
+					// and move it.
+					var bestNode;
+					var bestDelta = Number.MIN_VALUE;
+					nodesLeft.forEach(function (n) {
+						var delta = degreeDeltaLeft(n);
+						if (Math.abs(delta) > Math.abs(bestDelta)) {
+							bestDelta = delta;
+							bestNode = n;
+						}
+					});
+					if (bestDelta > 0) {
+						addToStart(bestNode);
+					} else {
+						addToEnd(bestNode);
+					}
+				}
+			}
+		}
+	}
+	return startSeq.concat(endSeq);
+}
