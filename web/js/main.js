@@ -1,5 +1,6 @@
 import {parsePAJ} from './graph';
 import * as d3 from "d3";
+import {MatrixVis} from './matrix';
 
 var svg = d3.select("svg");
 var width = +svg.attr("width");
@@ -28,10 +29,14 @@ function dragended(d) {
 	d.fy = null;
 }
 
+function clone (obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
 d3.text("../data/Chesapeake.paj", (error, graphData) => {
-	var graph = parsePAJ(graphData);
+	const graph = parsePAJ(graphData);
+	const baseGraph = clone(graph);
 
-	var link = svg.append("g")
+	const link = svg.append("g")
 		.attr("class", "links")
 		.selectAll("line")
 		.data(graph.edges)
@@ -39,7 +44,7 @@ d3.text("../data/Chesapeake.paj", (error, graphData) => {
 		.append("line")
 		.attr("stroke-width", d => Math.sqrt(Math.sqrt(d.weight)));
 
-	var node = svg.append("g")
+	const node = svg.append("g")
 		.attr("class", "nodes")
 		.selectAll("circle")
 		.data(graph.nodes)
@@ -72,4 +77,8 @@ d3.text("../data/Chesapeake.paj", (error, graphData) => {
 			.attr("cx", function(d) {return d.x; })
 			.attr("cy", function(d) {return d.y; });
 	}
+
+	const matrix = new MatrixVis("p", "matrix")
+	matrix.setGraph(baseGraph);
+	matrix.updateTag();
 });
