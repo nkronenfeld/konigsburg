@@ -19,6 +19,7 @@
 }
 </style>
 <div id="controls">
+  <h2 id="current dataset">No dataset selected</h2>
   <select id="dataset">
 	<option value=""></option>
 	<option value="Chesapeake.paj">Chesapeake Bay Mesohaline Net </option>
@@ -46,6 +47,8 @@
 	<option value="mangwet.paj">Mangrove Estuary, Wet Season </option>
   </select>
   <button id="reorder">Optimize order</button>
+  <input id="order" type="text" name="node order"></input>
+  <button id="aggregate">aggregate</button>
 </div>
 <svg id="fd-graph" width="960" height="600"></svg>
 <svg id="matrix" style="float:right"></svg>

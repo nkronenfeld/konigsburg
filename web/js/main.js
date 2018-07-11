@@ -21,13 +21,15 @@ let currentGraph = emptyGraph();
 function updateGraph (graph) {
 	currentGraph = clone(graph);
 
+	controls.setGraphOrderField("order", currentGraph);
+
 	initializeGraphView(currentGraph);
 	
 	matrix.setGraph(currentGraph);
 	matrix.updateTag();
 }
 
-controls.setupDatasetChooser("dataset", dataset => {
+controls.setupDatasetChooser("dataset", "current dataset", dataset => {
 	if ("" == dataset) {
 		updateGraph(emptyGraph());
 	} else {
@@ -38,3 +40,5 @@ controls.setupDatasetChooser("dataset", dataset => {
 });
 
 controls.setupOrderOptimization("reorder", () => currentGraph, updateGraph);
+
+controls.setupTextBasedAggregation("order", "aggregate", () => currentGraph, updateGraph);

@@ -250,3 +250,83 @@ export function optimizeOrder (graph) {
 		edges: newEdges
 	};
 }
+
+
+// Change from a serial aggregation description (a list of nodes or lists of
+// nodes that get aggregated together) into a transformation object that can
+// tell from what node a new node comes or to what node an old node goes
+// Input format: array[either[array, id]]
+//
+// Also, check aggregation to make sure:
+//  (a) there are no duplicates
+//  (b) all original nodes are accounted for
+function getAggregationTransformation (aggregation, nodes) {
+	const newIdMap = {};
+	const oldIds = [];
+	function addNewId (oldId, index) {
+		if (newIdMap[oldId]) {
+			throw `duplicate ID ${oldId}`;
+		}
+		newIdMap[oldId] = index + 1;
+		oldIds.push(index + 1);
+	}
+	aggregation.forEach((a, n) => {
+		if (Array.isArray(a)) {
+			a.forEach(aa => addNewId(aa, n));
+		} else {
+			addNewId(a, n);
+		}
+	});
+	const newIds = aggregation.map((n, i) => i + 1);
+
+	// Check to make sure all IDs are accounted for
+	oldIds.forEach(id => nodes.splice(nodes.indexOf(id), 1))
+	if (nodes.length > 0) {
+		throw `Not all nodes accounted for in aggregation ${JSON.stringify(aggregation)}.  Nodes left: ${JSON.stringify(nodes)}`;
+	}
+
+	// Return our pieces
+	return {
+		oldIds: oldIds,
+		newIds: newIds,
+		newIdOf: oldId => newIdMap[oldId],
+		oldIdsOf: newId => aggregation[newId]
+	}
+}
+
+export function aggregateGraph (graph, aggregation) {
+	const transform = getAggregationTransformation(aggregation, graph.nodes.map(n => n.id));
+
+	// Aggregate nodes
+	const nodeMap = {};
+	graph.nodes.forEach(node => {
+		const newId = transform.newIdOf(node.id);
+		if (nodeMap[newId]) {
+			nodeMap[newId].name = `${nodeMap[newId].name}:${node.name}`;
+			nodeMap[newId].type = Math.max(nodeMap[newId].type, node.type);
+			nodeMap[newId].value = nodeMap[newId].value + node.value;
+		} else {
+			nodeMap[newId] = clone(node);
+			nodeMap[newId].id = newId;
+		}
+	});
+	const nodes = Object.values(nodeMap).sort((a, b) => a.id - b.id);
+
+	// Aggregate edges
+	const edgeMap = {};
+	graph.edges.forEach(edge => {
+		const newSrc = transform.newIdOf(edge.source);
+		const newTgt = transform.newIdOf(edge.target);
+		const newKey = JSON.stringify({src: newSrc, tgt: newTgt});
+		if (edgeMap[newKey]) {
+			edgeMap[newKey].weight = edgeMap[newKey].weight + edge.weight;
+		} else {
+			edgeMap[newKey] = newEdge(newSrc, newTgt, edge.weight);
+		}
+	});
+	const edges = Object.values(edgeMap);
+	return {
+		nodes: nodes,
+		edges: edges
+	};
+}
