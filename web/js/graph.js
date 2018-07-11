@@ -1,6 +1,6 @@
 function tokenizeLine (line, separator) {
-	var tokens = [];
-	var curToken = "";
+	const tokens = [];
+	let curToken = "";
 	for (var i = 0; i < line.length; i++) {
 		if (line[i] == '"') {
 			i = i + 1;
@@ -22,7 +22,7 @@ function tokenizeLine (line, separator) {
 }
 
 function processCommand (line, state) {
-	var tokens = tokenizeLine(line, "/");
+	let tokens = tokenizeLine(line, "/");
 	if (tokens.length > 1) {
 		state.fieldNames = [tokens[0]];
 	} else {
@@ -47,7 +47,7 @@ function processCommand (line, state) {
 }
 
 function processNode (line, state, graph) {
-	var tokens = tokenizeLine(line, " ")
+	const tokens = tokenizeLine(line, " ")
 	if (tokens.length == state.fieldNames.length &&
 		state.count < state.maxCount) {
 		var node = graph.nodes[state.count];
@@ -63,7 +63,7 @@ function processNode (line, state, graph) {
 }
 
 function processEdge (line, state, graph) {
-	var tokens = tokenizeLine(line, " ")
+	const tokens = tokenizeLine(line, " ")
 	if (tokens.length == 3) {
 		graph.edges.push({
 			"source": tokens[0],
@@ -74,11 +74,11 @@ function processEdge (line, state, graph) {
 }
 
 export function parsePAJ (pajText) {
-	var graph = {
+	const graph = {
 		"nodes": [],
 		"edges": []
 	};
-	var state = {
+	const state = {
 		"state": "general",
 		"fieldNames": [],
 		"count": 0,
@@ -108,9 +108,7 @@ export function parsePAJ (pajText) {
 
 function calculateBestGraphOrder (graph) {
 	function getEdgeWeight (source, target) {
-		val matchingEdge = graph.edges.find(function (edge) {
-			return edges.source == source && edges.target == target;
-		});
+		const matchingEdge = graph.edges.find(edge => edges.source == source && edges.target == target);
 		if (matchingEdge) {
 			return matchingEdge.weight;
 		} else {
@@ -118,12 +116,12 @@ function calculateBestGraphOrder (graph) {
 		}
 	}
 
-	var numNodes = graph.nodes.length();
-	var nodesLeft = [];
-	for (var i = 0; i < numNodes; ++i) {
+	const numNodes = graph.nodes.length();
+	const nodesLeft = [];
+	for (let i = 0; i < numNodes; ++i) {
 		nodesLeft.push(i);
 	}
-	var result = [];
+	let result = [];
 	if (numNodes < 2) {
 		result = nodesLeft;
 	} else {
@@ -141,8 +139,8 @@ function calculateBestGraphOrder (graph) {
 		//      choose a vertex u for which delta(u) is a maximum;
 		//      s1 <= s1 u; G <= G - u};
 		//  s <= s1 s2
-		var startSeq = [];
-		var endSeq = [];
+		const startSeq = [];
+		const endSeq = [];
 
 		function addToStart (i) {
 			nodesLeft.splice(nodesLeft.indexOf(i), 1);
@@ -170,8 +168,8 @@ function calculateBestGraphOrder (graph) {
 			return nonSelfDegree(nodesLeft, [node]);
 		}
 		function degreeDeltaLeft (node) {
-			var inDegree = nonSelfDegree(nodesLeft, [node]);
-			var outDegree = nonSelfDegree([node], nodesLeft);
+			const inDegree = nonSelfDegree(nodesLeft, [node]);
+			const outDegree = nonSelfDegree([node], nodesLeft);
 			return outDegree - inDegree;
 		}						 
 
@@ -180,25 +178,21 @@ function calculateBestGraphOrder (graph) {
 
 		while (nodesLeft.length > 0) {
 			// Look for clear sinks
-			var clearSinks = nodesLeft.filter(function (n) {
-				return sinkScore(n) == 0
-			});
+			var clearSinks = nodesLeft.filter(n => sinkScore(n) == 0)
 			if (clearSinks.length > 0) {
 				clearSinks.forEach(addToEnd);
 			} else {
 				// Look for clear sources
-				var clearSources = nodesLeft.filter(function(n) {
-					return sourceScore(n) == 0;
-				});
+				const clearSources = nodesLeft.filter( n => sourceScore(n) == 0);
 				if (clearSources.length > 0) {
 					clearSources.forEach(addToStart);
 				} else {
 					// No clear sinks or soures; pick our best candidate
 					// and move it.
-					var bestNode;
-					var bestDelta = Number.MIN_VALUE;
-					nodesLeft.forEach(function (n) {
-						var delta = degreeDeltaLeft(n);
+					let bestNode;
+					let bestDelta = Number.MIN_VALUE;
+					nodesLeft.forEach(n => {
+						const delta = degreeDeltaLeft(n);
 						if (Math.abs(delta) > Math.abs(bestDelta)) {
 							bestDelta = delta;
 							bestNode = n;
