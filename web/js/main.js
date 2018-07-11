@@ -2,7 +2,7 @@ import {parsePAJ} from './graph';
 import * as d3 from "d3";
 import {MatrixVis} from './matrix';
 
-var svg = d3.select("svg");
+var svg = d3.select("svg#fd-graph");
 var width = +svg.attr("width");
 var height = +svg.attr("height");
 var color = d3.scaleOrdinal(d3.schemeCategory20);
@@ -78,7 +78,7 @@ d3.text("../data/Chesapeake.paj", (error, graphData) => {
 			.attr("cy", function(d) {return d.y; });
 	}
 
-	const matrix = new MatrixVis("p", "matrix")
+	const matrix = new MatrixVis("matrix")
 	matrix.setGraph(baseGraph);
 	matrix.updateTag();
 });

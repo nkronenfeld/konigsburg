@@ -2,8 +2,7 @@
 
 import * as d3 from "d3";
 
-export function MatrixVis (tag, id) {
-	this.tag = tag;
+export function MatrixVis (id) {
 	this.id = id;
 	this.graph = null;
 
@@ -26,22 +25,65 @@ export function MatrixVis (tag, id) {
 
 	// Update the visuals for this matrix visualization
 	this.updateTag = () => {
-		let selector = tag;
-		if (id) {
-			selector = selector + "#" + this.id;
+		if (false) {
+			const columns = this.graph.length 
+			//    const width = (100.0 / columns) +"%"; 
+			const base = d3.select(`#${id}`); 
+			const table = base.append("table") 
+			const tr = table.selectAll("tr") 
+				  .data(this.graph) 
+			tr.exit().remove(); 
+			const rows = tr.enter().append("tr"); 
+			const td = rows.selectAll("td") 
+				  .data(function (d) {return d;}) 
+			td.exit().remove(); 
+			td.enter().append("td") 
+				.text(function (d) { return d; });
+		} else {
+			const columns = this.graph.length;
+			const columnNames = [];
+			for (let i = 0; i < columns; ++i) columnNames[i] = i;
+			const width = 1000;
+			const height = 1000;
+			const gridWidth = width / columns;
+
+			const base = d3.select("#"+this.id);
+			const svg = base.append("svg")
+				  .attr("width", width)
+				  .attr("height", height);
+			const row = svg.selectAll(".row")
+				  .data(this.graph)
+				  .enter().append("g")
+				  .attr("transform", (d, i) => `translate(0, ${i * gridWidth})`)
+			const cell = row.selectAll(".cell")
+				  .data(d => d)
+				  .enter().append("rect")
+				  .attr("x", (d, i) => i * gridWidth)
+				  .attr("width", gridWidth)
+				  .attr("height", gridWidth)
+				  .style("fill-opacity", d => d)
+				  .style("fill", "#0080b0");
+
+			row.append("line")
+				.attr("x2", width);
+			row.append("text")
+				.attr("x", -6)
+				.attr("y", (d, i) => (i + 0.5) * gridWidth)
+				.attr("dy", ".32em")
+				.attr("text-anchor", "end")
+				.text((d, i) => i);
+			const column = svg.selectAll(".column")
+				  .data(this.graph)
+				  .enter().append("g")
+				  .attr("transform", (d, i) => `translate(${i * gridWidth}, 0)`);
+			column.append("line")
+				.attr("x1", -width)
+			column.append("text")
+				.attr("x", 6)
+				.attr("y", (d, i) => (i + 0.5) * gridWidth)
+				.attr("dy", ".32em")
+				.attr("text-anchor", "start")
+				.text((d, i) => i);
 		}
-		const columns = this.graph.length
-		//		const width = (100.0 / columns) +"%";
-		const base = d3.select(selector);
-		const table = base.append("table")
-		const tr = table.selectAll("tr")
-			.data(this.graph)
-		tr.exit().remove();
-		const rows = tr.enter().append("tr");
-		const td = rows.selectAll("td")
-			.data(function (d) {return d;})
-		td.exit().remove();
-		td.enter().append("td")
-			.text(function (d) { return d; });
 	}
 };
