@@ -17,13 +17,10 @@ function tokenizeLine (line, separator) {
 	}
 	tokens.push(curToken);
 
-	return tokens
-		.map(function (token) {
-			return token.trim();
-		}).filter(function (token) {
-			return token.length > 0;
-		});
+	return tokens.map(token => token.trim())
+			.filter(token => token.length > 0);
 }
+
 function processCommand (line, state) {
 	var tokens = tokenizeLine(line, "/");
 	if (tokens.length > 1) {
@@ -48,6 +45,7 @@ function processCommand (line, state) {
 		}
 	}
 }
+
 function processNode (line, state, graph) {
 	var tokens = tokenizeLine(line, " ")
 	if (tokens.length == state.fieldNames.length &&
@@ -63,6 +61,7 @@ function processNode (line, state, graph) {
 		state.count = state.count + 1;
 	}
 }
+
 function processEdge (line, state, graph) {
 	var tokens = tokenizeLine(line, " ")
 	if (tokens.length == 3) {
@@ -73,7 +72,8 @@ function processEdge (line, state, graph) {
 		});
 	}
 }
-function parsePAJ (pajText) {
+
+export function parsePAJ (pajText) {
 	var graph = {
 		"nodes": [],
 		"edges": []
@@ -84,7 +84,7 @@ function parsePAJ (pajText) {
 		"count": 0,
 		"maxCount": 0
 	};
-	pajText.split("\n").forEach(function (line) {
+	pajText.split("\n").forEach(line => {
 		if (line.startsWith("%")) {
 			// ignore
 		} else if (line.startsWith("*")) {

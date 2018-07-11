@@ -27,3 +27,7 @@ This means: If we have an "expected path":
   * Force-directed vis vs
   * Ordered vis vs
   * Ordered and aggregated vis
+
+## Setup
+* Install Node
+* Run `setup.sh`

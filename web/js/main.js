@@ -1,3 +1,6 @@
+import {parsePAJ} from './graph';
+import * as d3 from "d3";
+
 var svg = d3.select("svg");
 var width = +svg.attr("width");
 var height = +svg.attr("height");
@@ -13,6 +16,7 @@ function dragstarted (d) {
 	d.fx = d.x;
 	d.fy = d.y;
 }
+
 function dragged (d) {
 	d.fx = d3.event.x;
 	d.fy = d3.event.y;
@@ -24,9 +28,7 @@ function dragended(d) {
 	d.fy = null;
 }
 
-d3.text("../data/Chesapeake.paj", function(error, graphData) {
-	if (error) throw error;
-
+d3.text("../data/Chesapeake.paj", (error, graphData) => {
 	var graph = parsePAJ(graphData);
 
 	var link = svg.append("g")
@@ -35,7 +37,7 @@ d3.text("../data/Chesapeake.paj", function(error, graphData) {
 		.data(graph.edges)
 		.enter()
 		.append("line")
-		.attr("stroke-width", function(d) {return Math.sqrt(Math.sqrt(d.weight));});
+		.attr("stroke-width", d => Math.sqrt(Math.sqrt(d.weight)));
 
 	var node = svg.append("g")
 		.attr("class", "nodes")
