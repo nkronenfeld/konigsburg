@@ -53,6 +53,7 @@ function extractLineBasedAggregation (graph) {
 				currentLine = node.line;
 			}
 		} else {
+			if (currentLineGroup) aggregation.push(currentLineGroup);
 			aggregation.push(node.id)
 			currentLineGroup = null;
 			currentLine = null;
