@@ -35,8 +35,7 @@ function dragged (d) {
 	nodePositions.get(d.id).y = selection.event.y;
 	
 	selection.select(this)
-		  .attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`)
-		  .attr("baseY", d => nodePositions.get(d.id).y);
+		.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
 	
 	updateEdges(d);
 }
@@ -47,20 +46,17 @@ function dragended(d) {
 	if (Math.abs(dropYPos - selection.event.y) < 25) {
 		nodePositions.get(d.id).y = dropYPos;
 		selection.select(this)
-			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`)
-			.attr("baseY", d => nodePositions.get(d.id).y);
+			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
         d.line = 1;        
 	} else if (Math.abs(mainYPos - selection.event.y) < 25) {
 		nodePositions.get(d.id).y = mainYPos;
 		selection.select(this)
-			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`)
-			.attr("baseY", d => nodePositions.get(d.id).y);
+			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
         d.line = 0;
 	} else {
 		nodePositions.get(d.id).y = startYPos;
 		selection.select(this)
-			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`)
-			.attr("baseY", d => nodePositions.get(d.id).y);
+			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
 	}
 	updateEdges(d);
 }
@@ -169,9 +165,7 @@ export function initializeGraphView(graphData) {
 	unmergedNodeRoots.append("circle");
 
 	const mergedNodeRoots = unmergedNodeRoots.merge(node)
-		  .attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`)
-		  .attr("baseX", d => nodePositions.get(d.id).x)
-		  .attr("baseY", d => nodePositions.get(d.id).y);
+		  .attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
 	mergedNodeRoots.select("text")
 		.text(d => d.name)
 		.attr("transform", d => `rotate(-60)translate(10, 0)`);
