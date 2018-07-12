@@ -31,3 +31,13 @@ This means: If we have an "expected path":
 ## Setup
 * Install Node
 * Run `setup.sh`
+* Run `yarn build`
+
+## Run Locally
+* Run `go run server.go`
+* Connect to [http://localhost:6789]
+
+## Deployment
+* Run `build.sh` to build a Docker container
+* Run `run.sh` to run the Docker container
+* Connect to [http://localhost:6789]
