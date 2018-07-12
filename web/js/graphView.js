@@ -61,10 +61,12 @@ const lineGenerator = shape.line()
 	.y(d => d.y)
 	.curve(shape.curveBasis)
 
+// create a unique key from source/target
 function genKey(edge) {
     return `${edge.source}:${edge.target}`;
 }
 
+// updates the edges in a definitely non-d3 way
 function updateEdges(d) {
 	const edges = graph.edges.filter(e => e.source === d.id || e.target === d.id);
 	edges.forEach(e => {
@@ -76,6 +78,7 @@ function updateEdges(d) {
 		.attr("d", d => lineGenerator(edgePositions.get(genKey(d))));
 }
 
+// performs linear node layout along a primary or secondary axis
 function computeNodePositions(xOffset, yOffset, width, height, nodes) {
     const nodePositions = new Map();
     const spacing = (width - xOffset) / nodes.length;
@@ -89,6 +92,7 @@ function computeNodePositions(xOffset, yOffset, width, height, nodes) {
     return nodePositions;
 }
 
+// computes vertex positions for a single edge
 function computeEdgePosition(edge, nodePositions, arcRatio) {
 	const p0 = nodePositions.get(edge.source);
 	const p1 = nodePositions.get(edge.target);
@@ -96,6 +100,7 @@ function computeEdgePosition(edge, nodePositions, arcRatio) {
 	return [p0, mid, p1];
 }
 
+// computes vertex positions for edges based on previously laid out nodes
 function computeEdgePositions(edges, nodePositions, arcRatio) {
     const edgePositions = new Map();
 	edges.forEach(edge => {
@@ -111,6 +116,7 @@ export function initializeGraphView(graphData) {
     nodePositions = computeNodePositions(mainXPos, mainYPos, width, 50, graph.nodes);
     edgePositions = computeEdgePositions(graph.edges, nodePositions, arcRatio);
 
+    // do one-time init of visual roots
     if (graphNodes == null || graphLinks == null) {
         graphLinks = svg.append("g")
             .attr("id", "graph-links")
@@ -131,6 +137,7 @@ export function initializeGraphView(graphData) {
             .attr("y2", dropYPos)
     }
 
+    // setup / update the graph links
     const link = graphLinks.selectAll("path").data(graph.edges);
     link.exit().remove();
     link.enter()
@@ -139,20 +146,21 @@ export function initializeGraphView(graphData) {
         .attr("stroke-width", d => Math.sqrt(Math.sqrt(Math.sqrt(d.weight))))
         .attr("d", d => lineGenerator(edgePositions.get(genKey(d))));
         
+    // setup / update the graph nodes
     const node = graphNodes.selectAll("circle").data(graph.nodes);
     node.exit().remove();
-    node.enter()
+    const unmergedNodes = node.enter()
         .append("circle")
         .call(drag.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended))
-      .merge(node)
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+    unmergedNodes.append("title")
+    unmergedNodes.merge(node)
         .attr("r", d => 4 + Math.sqrt(Math.sqrt(d.value)))
         .attr("fill", d => color(d.type))
         .attr("cx", d => nodePositions.get(d.id).x)
-        .attr("cy", d => nodePositions.get(d.id).y);
-    
-    node.append("title")
-        .text(d => d.name);
+        .attr("cy", d => nodePositions.get(d.id).y)
+        .select("title")
+        .text(d => d.name)
 }
