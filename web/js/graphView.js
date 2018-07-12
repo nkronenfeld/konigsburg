@@ -144,12 +144,14 @@ export function initializeGraphView(graphData) {
     }
 
     // setup / update the graph links
+	const maxEdgeWeight = graph.edges.map(edge => Number(edge.weight))
+		  .reduce((a, b) => Math.max(Number(a), Number(b)), 1);
     const link = graphLinks.selectAll("path").data(graph.edges);
     link.exit().remove();
     link.enter()
         .append("path")
       .merge(link)
-        .attr("stroke-width", d => Math.sqrt(Math.sqrt(Math.sqrt(d.weight))))
+        .attr("stroke-width", d => 20 * d.weight / maxEdgeWeight)
         .attr("d", d => lineGenerator(edgePositions.get(genKey(d))));
         
     // setup / update the graph nodes
