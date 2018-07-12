@@ -4,9 +4,9 @@ import * as drag from 'd3-drag';
 import * as scale from 'd3-scale';
 import * as request from 'd3-request';
 
-const dropYPos = 100;
+const dropYPos = 150;
 const mainXPos = 50;
-const mainYPos = 200;
+const mainYPos = 300;
 const arcRatio = 0.25;
 
 let graphNodes = null;
@@ -16,7 +16,6 @@ const svg = selection.select("svg#fd-graph");
 
 const width = +svg.attr("width");
 const height = +svg.attr("height");
-const xMargin = 25;
 
 let color = scale.scaleOrdinal(scale.schemeCategory20);
 
@@ -79,12 +78,12 @@ function updateEdges(d) {
 
 function computeNodePositions(xOffset, yOffset, width, height, nodes) {
     const nodePositions = new Map();
-    const spacing = width / nodes.length;
+    const spacing = (width - xOffset) / nodes.length;
     nodes.forEach((node, idx) => {
         nodePositions.set(node.id,
         {
             x: xOffset + (idx * spacing),
-            y: yOffset + (node.line && node.line === 1 ? dropYPos : 0)
+            y: yOffset - (node.line && node.line === 1 ? dropYPos : 0)
         })
     });
     return nodePositions;
@@ -109,7 +108,7 @@ function computeEdgePositions(edges, nodePositions, arcRatio) {
 // main function to set/update graph data
 export function initializeGraphView(graphData) {
     graph = graphData;
-    nodePositions = computeNodePositions(mainXPos, mainYPos, width - xMargin, 50, graph.nodes);
+    nodePositions = computeNodePositions(mainXPos, mainYPos, width, 50, graph.nodes);
     edgePositions = computeEdgePositions(graph.edges, nodePositions, arcRatio);
 
     if (graphNodes == null || graphLinks == null) {
@@ -126,9 +125,9 @@ export function initializeGraphView(graphData) {
             .attr("class", "dropLine")            
             .append("line")
             .attr("stroke-dasharray", "6, 2")
-            .attr("x1", 0)
+            .attr("x1", mainXPos)
             .attr("y1", dropYPos)
-            .attr("x2", 960)
+            .attr("x2", width)
             .attr("y2", dropYPos)
     }
 
