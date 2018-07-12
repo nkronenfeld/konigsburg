@@ -15,38 +15,44 @@ let dropLine = null;
 let svg = selection.select("svg#fd-graph");
 let width = +svg.attr("width");
 let height = +svg.attr("height");
+
 let color = scale.scaleOrdinal(scale.schemeCategory20);
 
 let graph = null;
-let positions = null;
+let nodePositions = null;
 let edgePositions = null;
 
 let startYPos = 0;
 
+// saves the start vertical location so that we can snap back to it
 function dragstarted(d) {
-	startYPos = positions.get(d.id).y;
+	startYPos = nodePositions.get(d.id).y;
 }
 
+// updates the node and its corresponding edges
 function dragged (d) {
-	positions.get(d.id).y = selection.event.y;
+	nodePositions.get(d.id).y = selection.event.y;
 	selection.select(this).attr("cy", selection.event.y);
 	updateEdges(d);
 }
 
+// updates the node and its corresponding edges, snapping back
+// to the start location if it is not near enough to the drop line
 function dragended(d) {
 	if (Math.abs(dropYPos - selection.event.y) < 25) {
-		positions.get(d.id).y = dropYPos;
+		nodePositions.get(d.id).y = dropYPos;
 		selection.select(this).attr("cy", dropYPos);
 	} else if (Math.abs(mainYPos - selection.event.y) < 25) {
-		positions.get(d.id).y = mainYPos;
+		nodePositions.get(d.id).y = mainYPos;
 		selection.select(this).attr("cy", mainYPos);
 	} else {
-		positions.get(d.id).y = startYPos;
+		nodePositions.get(d.id).y = startYPos;
 		selection.select(this).attr("cy", startYPos);
 	}
 	updateEdges(d);
 }
 
+// generates curves for path visuals
 const lineGenerator = shape.line()
 	.x(d => d.x)
 	.y(d => d.y)
@@ -55,7 +61,7 @@ const lineGenerator = shape.line()
 function updateEdges(d) {
 	const edges = graph.edges.filter(e => e.source === d.id || e.target === d.id);
 	edges.forEach(e => {
-		const pos = computeEdgePosition(e, positions, arcRatio);
+		const pos = computeEdgePosition(e, nodePositions, arcRatio);
 		edgePositions.set(d.id, pos);
 	});
 	selection.selectAll("path")
@@ -63,17 +69,17 @@ function updateEdges(d) {
 		.attr("d", d => lineGenerator(edgePositions.get(d.source)));
 }
 
-function computeLayout(xOffset, yOffset, width, height, nodes) {
-    const positions = new Map();
+function computeNodePositions(xOffset, yOffset, width, height, nodes) {
+    const nodePositions = new Map();
     const spacing = width / nodes.length;
     nodes.forEach((node, idx) => {
-        positions.set(node.id,
+        nodePositions.set(node.id,
         {
             x: xOffset + (idx * spacing),
             y: yOffset
         })
     });
-    return positions;
+    return nodePositions;
 }
 
 function computeEdgePosition(edge, nodePositions, arcRatio) {
@@ -92,23 +98,26 @@ function computeEdgePositions(edges, nodePositions, arcRatio) {
     return edgePositions;
 }
 
+// main function to set/update graph data
 export function initializeGraphView(graphData) {
     graph = graphData;
-    positions = computeLayout(mainXPos, mainYPos, width, 50, graph.nodes);
-    edgePositions = computeEdgePositions(graph.edges, positions, arcRatio);
+    nodePositions = computeNodePositions(mainXPos, mainYPos, width, 50, graph.nodes);
+    edgePositions = computeEdgePositions(graph.edges, nodePositions, arcRatio);
 
     if (graphNodes == null || graphLinks == null) {
         graphLinks = svg.append("g")
             .attr("id", "graph-links")
             .attr("class", "links");
+        
         graphNodes = svg.append("g")
             .attr("id", "graph-nodes")
             .attr("class", "nodes");
 
         dropLine = svg.append("g")
             .attr("id", "graph-drop")
-            .attr("class", "dropLine")
+            .attr("class", "dropLine")            
             .append("line")
+            .attr("stroke-dasharray", "6, 2")
             .attr("x1", 0)
             .attr("y1", dropYPos)
             .attr("x2", 960)
@@ -134,8 +143,8 @@ export function initializeGraphView(graphData) {
       .merge(node)
         .attr("r", d => 4 + Math.sqrt(Math.sqrt(d.value)))
         .attr("fill", d => color(d.type))
-        .attr("cx", d => positions.get(d.id).x)
-        .attr("cy", d => positions.get(d.id).y);
+        .attr("cx", d => nodePositions.get(d.id).x)
+        .attr("cy", d => nodePositions.get(d.id).y);
     
     node.append("title")
         .text(d => d.name);
