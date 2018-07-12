@@ -93,7 +93,8 @@ function pajNodeToGraphNode (pajNode) {
 export function emptyGraph () {
 	return {
 		nodes: [],
-		edges: []
+		edges: [],
+		aggregateType: 0
 	};
 }
 
@@ -127,6 +128,9 @@ export function parsePAJ (pajText) {
 		}
 	});
 	graph.nodes = graph.nodes.map(pajNodeToGraphNode);
+	graph.aggregateType = graph.nodes.map(node => node.type).reduce((a, b) => {
+		return Math.max(Number(a), Number(b));
+	}, 0) + 5;
 	return graph;
 }
 
@@ -247,7 +251,8 @@ export function optimizeOrder (graph) {
 
 	return {
 		nodes: newNodes,
-		edges: newEdges
+		edges: newEdges,
+		aggregateType: graph.aggregateType
 	};
 }
 
@@ -303,11 +308,15 @@ export function aggregateGraph (graph, aggregation) {
 		const newId = transform.newIdOf(node.id);
 		if (nodeMap[newId]) {
 			nodeMap[newId].name = `${nodeMap[newId].name}:${node.name}`;
-			nodeMap[newId].type = Math.max(nodeMap[newId].type, node.type);
+			nodeMap[newId].type = graph.aggregateType;
 			nodeMap[newId].value = nodeMap[newId].value + node.value;
 		} else {
-			nodeMap[newId] = clone(node);
-			nodeMap[newId].id = newId;
+			nodeMap[newId] = {
+				name: node.name,
+				id: newId,
+				type: node.type,
+				value: node.value
+			};
 		}
 	});
 	const nodes = Object.values(nodeMap).sort((a, b) => a.id - b.id);
@@ -327,6 +336,7 @@ export function aggregateGraph (graph, aggregation) {
 	const edges = Object.values(edgeMap);
 	return {
 		nodes: nodes,
-		edges: edges
+		edges: edges,
+		aggregateType: graph.aggregateType
 	};
 }
