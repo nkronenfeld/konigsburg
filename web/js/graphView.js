@@ -41,10 +41,12 @@ function dragged (d) {
 function dragended(d) {
 	if (Math.abs(dropYPos - selection.event.y) < 25) {
 		nodePositions.get(d.id).y = dropYPos;
-		selection.select(this).attr("cy", dropYPos);
+        selection.select(this).attr("cy", dropYPos);
+        d.line = 1;        
 	} else if (Math.abs(mainYPos - selection.event.y) < 25) {
 		nodePositions.get(d.id).y = mainYPos;
-		selection.select(this).attr("cy", mainYPos);
+        selection.select(this).attr("cy", mainYPos);
+        d.line = 0;
 	} else {
 		nodePositions.get(d.id).y = startYPos;
 		selection.select(this).attr("cy", startYPos);
@@ -76,7 +78,7 @@ function computeNodePositions(xOffset, yOffset, width, height, nodes) {
         nodePositions.set(node.id,
         {
             x: xOffset + (idx * spacing),
-            y: yOffset
+            y: yOffset + (node.line && node.line === 1 ? dropYPos : 0)
         })
     });
     return nodePositions;
