@@ -202,8 +202,8 @@ function calculateBestGraphOrder (graph) {
 			return outDegree - inDegree;
 		}						 
 
-		addToStart(nodesLeft[0]);
-		addToEnd(nodesLeft[nodesLeft.length - 1]);
+//		addToStart(nodesLeft[0]);
+//		addToEnd(nodesLeft[nodesLeft.length - 1]);
 
 		while (nodesLeft.length > 0) {
 			// Look for clear sinks
