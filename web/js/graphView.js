@@ -12,9 +12,11 @@ const arcRatio = 0.25;
 let graphNodes = null;
 let graphLinks = null;
 let dropLine = null;
-let svg = selection.select("svg#fd-graph");
-let width = +svg.attr("width");
-let height = +svg.attr("height");
+const svg = selection.select("svg#fd-graph");
+
+const width = +svg.attr("width");
+const height = +svg.attr("height");
+const xMargin = 25;
 
 let color = scale.scaleOrdinal(scale.schemeCategory20);
 
@@ -60,15 +62,19 @@ const lineGenerator = shape.line()
 	.y(d => d.y)
 	.curve(shape.curveBasis)
 
+function genKey(edge) {
+    return `${edge.source}:${edge.target}`;
+}
+
 function updateEdges(d) {
 	const edges = graph.edges.filter(e => e.source === d.id || e.target === d.id);
 	edges.forEach(e => {
 		const pos = computeEdgePosition(e, nodePositions, arcRatio);
-		edgePositions.set(d.id, pos);
+		edgePositions.set(genKey(e), pos);
 	});
 	selection.selectAll("path")
 		.filter(e => e.source === d.id || e.target === d.id)
-		.attr("d", d => lineGenerator(edgePositions.get(d.source)));
+		.attr("d", d => lineGenerator(edgePositions.get(genKey(d))));
 }
 
 function computeNodePositions(xOffset, yOffset, width, height, nodes) {
@@ -95,7 +101,7 @@ function computeEdgePositions(edges, nodePositions, arcRatio) {
     const edgePositions = new Map();
 	edges.forEach(edge => {
 		const pos = computeEdgePosition(edge, nodePositions, arcRatio);
-		edgePositions.set(edge.source, pos);
+		edgePositions.set(genKey(edge), pos);
 	})
     return edgePositions;
 }
@@ -103,7 +109,7 @@ function computeEdgePositions(edges, nodePositions, arcRatio) {
 // main function to set/update graph data
 export function initializeGraphView(graphData) {
     graph = graphData;
-    nodePositions = computeNodePositions(mainXPos, mainYPos, width, 50, graph.nodes);
+    nodePositions = computeNodePositions(mainXPos, mainYPos, width - xMargin, 50, graph.nodes);
     edgePositions = computeEdgePositions(graph.edges, nodePositions, arcRatio);
 
     if (graphNodes == null || graphLinks == null) {
@@ -132,7 +138,7 @@ export function initializeGraphView(graphData) {
         .append("path")
       .merge(link)
         .attr("stroke-width", d => Math.sqrt(Math.sqrt(Math.sqrt(d.weight))))
-        .attr("d", d => lineGenerator(edgePositions.get(d.source)));
+        .attr("d", d => lineGenerator(edgePositions.get(genKey(d))));
         
     const node = graphNodes.selectAll("circle").data(graph.nodes);
     node.exit().remove();
