@@ -163,8 +163,8 @@ export function initializeGraphView(graphData) {
 				.on("start", dragstarted)
 				.on("drag", dragged)
 				.on("end", dragended));
-	unmergedNodeRoots.append("text");
 	unmergedNodeRoots.append("circle");
+	unmergedNodeRoots.append("text");
 
 	const mergedNodeRoots = unmergedNodeRoots.merge(node)
 		  .attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
