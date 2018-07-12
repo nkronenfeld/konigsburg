@@ -1,4 +1,4 @@
-import {aggregateGraph, optimizeOrder} from './graph';
+import {aggregateGraph, optimizeOrder, randomlyReorder} from './graph';
 
 export function setupDatasetChooser (tag, titleTag, withDataset) {
 	const chooser = document.getElementById(tag);
@@ -19,6 +19,13 @@ export function setupOrderOptimization (tag, getCurrentGraph, withNewGraph) {
 	const button = document.getElementById(tag);
 	button.onclick = function (event) {
 		withNewGraph(optimizeOrder(getCurrentGraph()));
+	}
+}
+
+export function setupRandomOrdering (tag, getCurrentGraph, withNewGraph) {
+	const button = document.getElementById(tag);
+	button.onclick = function (event) {
+		withNewGraph(randomlyReorder(getCurrentGraph()));
 	}
 }
 

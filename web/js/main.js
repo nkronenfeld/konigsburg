@@ -40,6 +40,7 @@ controls.setupDatasetChooser("dataset", "current dataset", dataset => {
 });
 
 controls.setupOrderOptimization("reorder", () => currentGraph, updateGraph);
+controls.setupRandomOrdering("random", () => currentGraph, updateGraph);
 
 controls.setupTextBasedAggregation("order", "aggregate-text", () => currentGraph, updateGraph);
 

@@ -256,6 +256,20 @@ export function optimizeOrder (graph) {
 	};
 }
 
+export function randomlyReorder (graph) {
+	const oldNodes = graph.nodes.map(clone);
+	const newNodes = [];
+	while (oldNodes.length > 0) {
+		const i = Math.floor(Math.random() * oldNodes.length);
+		newNodes.push(oldNodes[i]);
+		oldNodes.splice(i, 1);
+	}
+	return {
+		nodes: newNodes,
+		edges: graph.edges,
+		aggregateType: graph.aggregateType
+	};
+}
 
 // Change from a serial aggregation description (a list of nodes or lists of
 // nodes that get aggregated together) into a transformation object that can
