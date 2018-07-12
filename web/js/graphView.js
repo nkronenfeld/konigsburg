@@ -9,7 +9,10 @@ const mainXPos = 50;
 const mainYPos = 200;
 const arcRatio = 0.25;
 
-let svg = selection.select("svg");
+let graphNodes = null;
+let graphLinks = null;
+let dropLine = null;
+let svg = selection.select("svg#fd-graph");
 let width = +svg.attr("width");
 let height = +svg.attr("height");
 let color = scale.scaleOrdinal(scale.schemeCategory20);
@@ -91,41 +94,49 @@ function computeEdgePositions(edges, nodePositions, arcRatio) {
 
 export function initializeGraphView(graphData) {
     graph = graphData;
-    positions = computeLayout(mainXPos, mainYPos, 960, 10, graph.nodes);
+    positions = computeLayout(mainXPos, mainYPos, width, 50, graph.nodes);
     edgePositions = computeEdgePositions(graph.edges, positions, arcRatio);
 
-    const link = svg.append("g")
-        .attr("class", "links")
-        .selectAll("path")
-        .data(graph.edges)
-        .enter()
+    if (graphNodes == null || graphLinks == null) {
+        graphLinks = svg.append("g")
+            .attr("id", "graph-links")
+            .attr("class", "links");
+        graphNodes = svg.append("g")
+            .attr("id", "graph-nodes")
+            .attr("class", "nodes");
+
+        dropLine = svg.append("g")
+            .attr("id", "graph-drop")
+            .attr("class", "dropLine")
+            .append("line")
+            .attr("x1", 0)
+            .attr("y1", dropYPos)
+            .attr("x2", 960)
+            .attr("y2", dropYPos)
+    }
+
+    const link = graphLinks.selectAll("path").data(graph.edges);
+    link.exit().remove();
+    link.enter()
         .append("path")
+      .merge(link)
         .attr("stroke-width", d => Math.sqrt(Math.sqrt(Math.sqrt(d.weight))))
         .attr("d", d => lineGenerator(edgePositions.get(d.source)));
         
-    const node = svg.append("g")
-        .attr("class", "nodes")
-        .selectAll("circle")
-        .data(graph.nodes)
-        .enter()
+    const node = graphNodes.selectAll("circle").data(graph.nodes);
+    node.exit().remove();
+    node.enter()
         .append("circle")
-        .attr("r", d => Math.sqrt(Math.sqrt(d.value)))
-        .attr("fill", d => color(d.type))
-        .attr("cx", d => positions.get(d.id).x)
-        .attr("cy", d => positions.get(d.id).y)
         .call(drag.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
-                .on("end", dragended));
-
-    const dropLine = svg.append("g")
-        .attr("class", "dropLine")
-        .append("line")
-        .attr("x1", 0)
-        .attr("y1", dropYPos)
-        .attr("x2", 960)
-        .attr("y2", dropYPos)
-        
+                .on("end", dragended))
+      .merge(node)
+        .attr("r", d => 4 + Math.sqrt(Math.sqrt(d.value)))
+        .attr("fill", d => color(d.type))
+        .attr("cx", d => positions.get(d.id).x)
+        .attr("cy", d => positions.get(d.id).y);
+    
     node.append("title")
         .text(d => d.name);
 }
