@@ -33,7 +33,10 @@ function dragstarted(d) {
 // updates the node and its corresponding edges
 function dragged (d) {
 	nodePositions.get(d.id).y = selection.event.y;
-	selection.select(this).attr("cy", selection.event.y);
+	
+	selection.select(this)
+		.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
+	
 	updateEdges(d);
 }
 
@@ -42,15 +45,18 @@ function dragged (d) {
 function dragended(d) {
 	if (Math.abs(dropYPos - selection.event.y) < 25) {
 		nodePositions.get(d.id).y = dropYPos;
-        selection.select(this).attr("cy", dropYPos);
+		selection.select(this)
+			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
         d.line = 1;        
 	} else if (Math.abs(mainYPos - selection.event.y) < 25) {
 		nodePositions.get(d.id).y = mainYPos;
-        selection.select(this).attr("cy", mainYPos);
+		selection.select(this)
+			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
         d.line = 0;
 	} else {
 		nodePositions.get(d.id).y = startYPos;
-		selection.select(this).attr("cy", startYPos);
+		selection.select(this)
+			.attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
 	}
 	updateEdges(d);
 }
@@ -138,29 +144,35 @@ export function initializeGraphView(graphData) {
     }
 
     // setup / update the graph links
+	const maxEdgeWeight = graph.edges.map(edge => Math.sqrt(Number(edge.weight)))
+		  .reduce((a, b) => Math.max(Number(a), Number(b)), 1);
     const link = graphLinks.selectAll("path").data(graph.edges);
     link.exit().remove();
     link.enter()
         .append("path")
       .merge(link)
-        .attr("stroke-width", d => Math.sqrt(Math.sqrt(Math.sqrt(d.weight))))
+        .attr("stroke-width", d => 20 * Math.sqrt(d.weight) / maxEdgeWeight)
         .attr("d", d => lineGenerator(edgePositions.get(genKey(d))));
         
     // setup / update the graph nodes
-    const node = graphNodes.selectAll("circle").data(graph.nodes);
+    const node = graphNodes.selectAll("g").data(graph.nodes);
     node.exit().remove();
-    const unmergedNodes = node.enter()
-        .append("circle")
-        .call(drag.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended));
-    unmergedNodes.append("title")
-    unmergedNodes.merge(node)
+    const unmergedNodeRoots = node.enter()
+          .append("g")
+          .call(drag.drag()
+				.on("start", dragstarted)
+				.on("drag", dragged)
+				.on("end", dragended));
+	unmergedNodeRoots.append("circle");
+	unmergedNodeRoots.append("text");
+
+	const mergedNodeRoots = unmergedNodeRoots.merge(node)
+		  .attr("transform", d => `translate(${nodePositions.get(d.id).x},${nodePositions.get(d.id).y})`);
+	mergedNodeRoots.select("text")
+		.text(d => d.name)
+		.attr("transform", d => `rotate(-60)translate(10, 0)`);
+	mergedNodeRoots.select("circle")
         .attr("r", d => 4 + Math.sqrt(Math.sqrt(d.value)))
-        .attr("fill", d => color(d.type))
-        .attr("cx", d => nodePositions.get(d.id).x)
-        .attr("cy", d => nodePositions.get(d.id).y)
-        .select("title")
-        .text(d => d.name)
+        .attr("fill", d => color(d.type));
 }
+
